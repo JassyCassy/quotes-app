@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -10,7 +10,9 @@ metadata:
   name: data
 spec:
   replicas: 1
-  strategy: {}
+  selector:
+    matchLabels:
+      io.kompose.service: data
   template:
     metadata:
       annotations:
@@ -28,31 +30,29 @@ spec:
         - name: MYSQL_DATABASE          
           value: mydatabase
         - name: MYSQL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: data-secret
-                key: password
+          valueFrom:
+            secretKeyRef:
+              name: data-secret
+              key: password
         - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: data-secret
-                key: rootpassword
+          valueFrom:
+            secretKeyRef:
+              name: data-secret
+              key: rootpassword
         - name: MYSQL_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: data-secret
-                key: username        
+          valueFrom:
+            secretKeyRef:
+              name: data-secret
+              key: username        
         image: jassycassy/quotes-data:v1
-        name: db
-        volumeMounts: 
-        - mountPath: /var/lib/mysql
-          name: quotes-data
-      volumes:
-        - name: quotes-data
-          persistentVolumeClaim:
-            claimName: data-pvc      
         ports:
         - containerPort: 3306
-        resources: {}
+        name: database
+        volumeMounts: 
+        - mountPath: "/var/lib/mysql"
+          name: quotes-data
+      volumes:
+      - name: quotes-data
+        persistentVolumeClaim:
+          claimName: data-pvc 
       restartPolicy: Always
-status: {}
